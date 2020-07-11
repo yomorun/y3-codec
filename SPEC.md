@@ -1,4 +1,4 @@
-# YoMo-Codec: Base Format
+# YoMo-Codec: Base Format (Invariants)
 
 ## Overview
 
@@ -8,7 +8,6 @@ Version Draft-01 (v202007). This protocol defines the framing individual message
 
 * [YoMo Message Format](#yomo-message-format)
 * [TLTV Format](#tltv-format)
-* [TLV: Tag-Length-Value Format](#tag-length-value-format)
 * [Fundamental Types](#fundamental-types)
 * [Complex Types](complex-types)
 
@@ -103,10 +102,10 @@ Example Structure {
 
 ~~~
 Base Packet {
-    Tag (1),
-    Length Varint Type (1..),
-    Type (1),
-    Value (..),
+    Tag (8),
+    Length Varint Type (8..),
+    Type (8),
+    Value (8..),
 }
 ~~~
 
