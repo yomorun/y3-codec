@@ -1,3 +1,10 @@
-# YoMo-Codec Specification
+# YoMo-Codec Specification Draft-01
 
-A fast TLV based codec used in YoMo, reveal the advantages of high speed networking like 5G
+Status: WIP
+
+See:
+
++ [SPEC.md](SPEC.md) for whole defination
++ [Base-Packet](base-packet.md) for base packet structure defination
++ [YoMo Control Packet](control-packet) for YoMo
+
