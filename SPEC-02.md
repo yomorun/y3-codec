@@ -7,7 +7,7 @@ Version Draft-01 (v202007). This protocol defines the framing individual message
 ## TOC
 
 * [YoMo Codec Packet Format](#yomo-codec-packet-format)
-* [TLV Format](#tlv)
+* [TLV Format](#tlv-format)
 * [Primitive Types](#primitive-types)
   * [Varint](#varint)
 
