@@ -1,3 +1,7 @@
+📚 VERSION: draft-01
+
+⛳️ STATE  : WIP
+
 ## 数据结构定义 Data Struture Defination 
 
 有两种数据结构：
