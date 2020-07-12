@@ -95,9 +95,9 @@ Example Structure {
 
 ~~~
 Base Packet {
-  SequenceID (6),
-  ArrayFlag (1),
   MSB (1),
+  ArrayFlag (1),
+  SequenceID (6),
   Length Varint Type (8..),
   Value (8..),
 }
