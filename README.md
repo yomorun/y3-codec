@@ -5,6 +5,6 @@ Status: WIP
 See:
 
 + [SPEC.md](SPEC.md) for whole defination
-+ [Base-Packet](base-packet.md) for base packet structure defination
++ [Data-Packet](data-packet.md) for base packet structure defination
 + [YoMo Control Packet](control-packet) for YoMo
 
