@@ -1,6 +1,6 @@
-📚 VERSION: draft-01
-
-⛳️ STATE  : WIP
+> 📚 VERSION: draft-01
+>
+> ⛳️ STATE  : WIP
 
 ## 数据结构定义 Data Struture Defination 
 
