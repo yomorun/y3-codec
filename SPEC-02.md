@@ -119,9 +119,9 @@ First define the message struct, just like a `.proto` file does:
 
 ```
 Primitive Packet, Tag=0x01 -> "age", value type is varint
-Node Packet, Tag=0x82 -> "summary", value need to parse
-Primitive Packet, Tag=0x03 -> "name", value type is string
-Primitive Packet, Tag=0x04 -> "create", value type is string
+Node Packet, Tag=0x82 -> "summary", this node contains two primitive packets:
+  Primitive Packet, Tag=0x03 -> "name", value type is string
+  Primitive Packet, Tag=0x04 -> "create", value type is string
 
 ```
 
