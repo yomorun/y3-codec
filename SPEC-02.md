@@ -164,19 +164,21 @@ There are 5 meta types in `Type`:
 
 ### Varint
 
-Varint represents a variable-length integer in [LEB128 Encoding](https://google.com/search?q=LEB128+Encoding) format.
+TODO: Use complement from @figroc
 
-The rules are:
-
-1. Uses [zigzag](https://developers.google.com/protocol-buffers/docs/encoding#signed-integers) encoding to transform all signed integers to unsigned integers (`i64` to `u64`), so we don't need to care about the signed integers when encoding/decoding.
-2. The highest bit of each byte reperesents as MSB (Most-Significant-Bit): when `MSB` is `1`, it indicates the following byte is also a part of `varint`, `0` indicates this byte is last byte of whole varint. The lower 7-bits are used to represent the value.
-3. Uses little-endian encoding.
-
-#### Varint Example
-
-An i32 value `259` in Dec we represent in binary is `0000 0000 0000 0000 0000 0001 0000 0011`, it uses 4 bytes. When we encode it in YoMo-Codec, there are 4 steps:
-
-1. The valid bytes are `0000 0001 0000 0011`
-2. Choose 7-bits as value bits: `0000 0010 0000 0011`
-3. Use little-endian sequence, transform to: `0000 0011 0000 0010`
-4. Change MSB as `1` except the last byte: `1000 0011 0000 0010`
+> Varint represents a variable-length integer in [LEB128 Encoding](https://google.com/search?q=LEB128+Encoding) format.
+> 
+> The rules are:
+> 
+> 1. Uses [zigzag](https://developers.google.com/protocol-buffers/docs/encoding#signed-integers) encoding to transform all signed integers to unsigned integers (`i64` to `u64`), so we don't need to care about the signed integers when encoding/decoding.
+> 2. The highest bit of each byte reperesents as MSB (Most-Significant-Bit): when `MSB` is `1`, it indicates the following byte is also a part of `varint`, `0` indicates this byte is last byte of whole varint. The lower 7-bits are used to represent the value.
+> 3. Uses little-endian encoding.
+> 
+> #### Varint Example
+> 
+> An i32 value `259` in Dec we represent in binary is `0000 0000 0000 0000 0000 0001 0000 0011`, it uses 4 bytes. When we encode it in YoMo-Codec, there are 4 steps:
+> 
+> 1. The valid bytes are `0000 0001 0000 0011`
+> 2. Choose 7-bits as value bits: `0000 0010 0000 0011`
+> 3. Use little-endian sequence, transform to: `0000 0011 0000 0010`
+> 4. Change MSB as `1` except the last byte: `1000 0011 0000 0010`
