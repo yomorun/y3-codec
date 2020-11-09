@@ -10,4 +10,4 @@ See:
 
 + [SPEC.md](SPEC.md) for whole defination
 + [YoMo Control Packet](control-packet.md) for YoMo
-
++ [REPORT_CN.md](./report/REPORT_CN.md) for performance test reports
