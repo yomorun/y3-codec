@@ -1,4 +1,4 @@
-# YoMo-Codec: Base Format (Invariants)
+# Y3 Codec: Base Format (Invariants)
 
 ## Overview
 
@@ -6,7 +6,7 @@ Version Draft-01 (v202007). This protocol defines the framing individual message
 
 ## TOC
 
-* [YoMo Codec Packet Format](#yomo-codec-packet-format)
+* [Y3 Codec Packet Format](#y3-packet-format)
 * [Notational Conventions](#notational-conventions)
 * [TLV Format](#tlv-format)
   * [Tag](#tag)
@@ -15,16 +15,18 @@ Version Draft-01 (v202007). This protocol defines the framing individual message
   * [Length](#length)
   * [Value](#value)
   * [TLV Example](#tlv-example)
-* [Pvarint](#pvarint)
-  * [Pvarint Example](#pvarint-example)
+* [Type System](#type-system)
+  * [PVarUInt32](#pvarint)
+  * [PVarUInt32 Example](#pvarint-example)
 
-## YoMo Codec Packet Format
+## Y3 Codec Packet Format
 
-YoMo-Codec defines YoMo message formats.
+Defines message formats.
 
-* Binary is good for encoding/decoding, especially for server side. You can directly skip the data which you don't care at all.
-* Not design for saving bytes, aimed for 5G & Wifi6
-* Not related to connection protocol, just a message format
+* A faster than real-time codec.
+* Binary is good for encoding/decoding, especially for random access of stream processing.
+* Design for QUIC Transport
+* Not related to connection protocol, just a message format.
 
 ## Notational Conventions
 
@@ -90,29 +92,29 @@ Example Structure {
 ```txt
 0        7
 +--------+
-|  Tag   |
-+--------+-----—-+-------------+
-| Length (pvarint)
-+--------+-------+-------------+
+| Tag    |
++--------+--------+--------+--------+
+| Length (PVarUInt32)               |
++--------+--------+--------+--------+
 | ...
-+--------+-------+-------------+
-| Value Payloads
-+------------------------------+
++--------+--------+--------+--------+
+| Value Payloads                    |
++--------+--------+--------+--------+
 | ...
-+--------+-------+-------------+
++--------+--------+--------+--------+
 ```
 
 ~~~
-Tag {
-  MSB (1),
-  ArrayFlag (1),
-  SequenceID (6),
-}
-
 Base Packet {
   Tag (8),
-  Length Varint Type (8..),
-  Value (8..),
+  Length (8..),
+  Value (8) ...,
+}
+
+Tag {
+  TypeFlag (1),
+  ArrayFlag (1),
+  SequenceID (6),
 }
 ~~~
 
@@ -127,29 +129,29 @@ Base Packet {
 +------------------------+
 ```
 
-1. 其最高位`F`(1000_0000)为`Packet Type`标志位，YoMo Codec有两种`Packet`：`NodePacket`和`PrimitivePacket`。对于`NodePacket`，该bit始终为1；对于`PrimitivePacket`，该bit始终为0
-1. 次高位`A`（0100_0000）为数组标识位，当该位为1时，表示该节点的Value为Slice类型（类似于JSON数据结构中的数组）
-1. 剩余低7位为`顺序标识位Sequence Bits`，用于表示该节点的SeqID（类似于JSON数据结构中的Key的作用）。（所有对于一个`NodePacket`，其Sub-Node最多只能有`2^6=64`个）
-
-#### NodePacket
-
-表示其`Value`包含至少一个`NodePacket`或`PrimitivePacket`
-
-#### PrimitivePacket
-
-表示其`Value`是基础数据类型
+1. 其最高位`F`(1000_0000)为`Packet Type`标志位，Y3 Codec有两种`Packet`：`PrimitivePacket`和`NodePacket`。对于`PrimitivePacket`，该bit始终为0；对于`NodePacket`，该bit始终为1。
+1. 次高位`A`（0100_0000）为数组标识位，当该位为1时，表示该节点的Value为Slice类型（类似于JSON数据结构中的数组）。
+1. 剩余低6位为`顺序标识位Sequence Bits`，用于表示该节点的SeqID（类似于JSON数据结构中的Key的作用）。（所有对于一个`NodePacket`，其Sub-Node最多只能有`2^6=64`个）。
 
 ### Length
 
-Length描述了该`Packet`的`Value`的字节长度，是[Pvarint变长整数类型](#pvarint)
+Length描述了该`Packet`的`Value`的字节长度，是[PVarUInt32变长整数类型](#pvarint)
 
 ### Value
 
 Value存储了该`Packet`的Value，在`decode`时，用户应指明具体数据类型对其解码
 
+#### Primitive Types
+
+表示其`Value`是基础数据类型
+
+#### Node Type
+
+表示其`Value`包含至少一个`NodePacket`或`PrimitivePacket`，所以子节点按照TLV编码依次组合成该NodePacket的最终Value
+
 ### TLV Example
 
-If we want to transform this `JSON` format object as YoMo-Codec:
+If we want to transform this `JSON` format object as Y3:
 
 ```json
 {
@@ -196,16 +198,54 @@ Will be encoded as:
 
 `0x01 0x01 0x05 0x82 0x0B 0x03 0x05 0x43 0x45 0x4C 0x4C 0x41 0x04 0x02 0x59 0x33`
 
-## Pvarint
+## Type System
 
-Pvarint represents a variable-length integer encoding. 'P' is for 'padding signed bit'
+支持一下数据类型编码：
+
+1. String
+1. Binary
+1. PVarInt32
+1. PVarUInt32
+1. PVarInt64
+1. PVarUInt64
+1. VarFloat32
+1. VarFloat64
+
+### String
+
+标准UTF-8编码
+
+### Binary
+
+标准Raw bytes
+
+### Pvarint
+
+`P-var-int` represents a variable-length integer encoding:
+
+* 'P' is for 'padding signed bit'.
+* 'var' is for 'variable-length'.
+* 'int' is for 'integer'.
 
 ```
 8   7   6                0
-+------------------------+
-| C |(S)|    payload     |
-+------------------------+
++---+---+----------------+
+| C |(S)|    payloads    |
++---+---+----------------+
 ```
+
+~~~
+PVarInt32 Value {
+  Continuation Bit (1),
+  Signed Bit (1),
+  Payloads (6) ...,
+}
+
+PVarUInt32 Value {
+  Continuation Bit (1),
+  Payloads (7) ...,
+}
+~~~
  
 + Big-Endian
 + C `0x80` represents as `Continuation Bit`, if this bit is `1`, means the following byte need to read next, if this bit is `0`, means
@@ -213,7 +253,7 @@ this is the last byte of the value.
 + (S) `0x40` represents as `Signed Bit` for Signed-Integer. for Unsigned-Integer, this is the data bit.
 + 与符号位相同的连续最高位只保留一位，剩余bits使用符号位填充
 
-### Pvarint Example
+#### Pvarint Example
 
 An `i32` value `511` in Dec we represent in binary is `0000 0000 0000 0000 0000 0001 1111 1111`, it uses 4 bytes. When we encode it in Pvarint, there are 4 steps:
  
