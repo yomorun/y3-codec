@@ -204,6 +204,7 @@ Will be encoded as:
 
 1. String
 1. Binary
+1. Boolean
 1. PVarInt32
 1. PVarUInt32
 1. PVarInt64
@@ -213,11 +214,11 @@ Will be encoded as:
 
 ### String
 
-标准UTF-8编码
+UTF-8 string
 
 ### Binary
 
-标准Raw bytes
+The raw bytes
 
 ### Pvarint
 
@@ -233,25 +234,25 @@ Will be encoded as:
 | C |(S)|    payloads    |
 +---+---+----------------+
 ```
-
-~~~
-PVarInt32 Value {
-  Continuation Bit (1),
-  Signed Bit (1),
-  Payloads (6) ...,
-}
-
-PVarUInt32 Value {
-  Continuation Bit (1),
-  Payloads (7) ...,
-}
-~~~
  
 + Big-Endian
 + C `0x80` represents as `Continuation Bit`, if this bit is `1`, means the following byte need to read next, if this bit is `0`, means
 this is the last byte of the value.
 + (S) `0x40` represents as `Signed Bit` for Signed-Integer. for Unsigned-Integer, this is the data bit.
 + 与符号位相同的连续最高位只保留一位，剩余bits使用符号位填充
+
+~~~
+PVarInt32 Value {
+  Continuation Bit (1),
+  Signed Bit (1),
+  Payloads (6..),
+}
+
+PVarUInt32 Value {
+  Continuation Bit (1),
+  Payloads (7..),
+}
+~~~
 
 #### Pvarint Example
 
@@ -268,3 +269,7 @@ An `i32` value `-1` in Dec we represent in binary is `1111 1111 1111 1111 1111 1
 2. Padding all the `x` as the signed bit `1`: `1111 1111`
 3. Choose 7-bits as value bits: `y111 1111`
 4. Change MSB as `1` except the last byte: `0111 1111`
+
+### Boolean
+
+a `PVarUInt32` value represents `0` OR `1` in 1 byte
