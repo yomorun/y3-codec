@@ -2,11 +2,11 @@
 
 >
 > Current Version: Draft-01
-
+>
 > Status: WIP
 >
 
-Languages: [简体中文](README-CN.md) | [English](README.md)
+Languages: English | [简体中文](README-CN.md)
 
 See:
 
