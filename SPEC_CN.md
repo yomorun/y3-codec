@@ -97,7 +97,7 @@ Example Structure {
 ~~~
 Base Packet {
   Tag (8),
-  Length (8..),
+  Length (8) ...,
   Value (8) ...,
 }
 
@@ -125,21 +125,21 @@ Tag {
 1. 次高位`A`（0100_0000）为`数组标识位`，当该位为`1`时，表示该节点的`值（Value）`为`切片（Slice）`类型（就像JSON中的数组概念）。
 1. 剩余低6位为`顺序ID标识位（Sequence Bits）`，用于表示该节点的`顺序ID（SeqID）`（类似于JSON数据结构中的Key的作用）。
 
+#### Primitive Types
+
+表示其`值（Value）`的数据类型是`基础数据类型`。
+
+#### Node Type
+
+表示其`值（Value）`包含至少一个`节点类型数据包（NodePacket）`或`原始类型数据包（PrimitivePacket）`，所有子节点按照`Tag-Length-Value`编码依次组合成该`节点类型数据包（NodePacket）`的最终值（Value）。
+
 ### Length
 
-`值位长（Length）`描述了该`数据包（Packet）`的`值（Value）`的字节长度，是[变长整数类型](#pvarint)
+`值位长（Length）`描述了该`数据包（Packet）`的`值（Value）`的字节长度，是[变长整数类型](#pvarint)。
 
 ### Value
 
 `值（Value）`存储了该`数据包（Packet）`的值内容，在`解码（decode）`时，再指明具体数据类型。
-
-#### Primitive Types
-
-表示其`值（Value）`的数据类型是`基础数据类型`
-
-#### Node Type
-
-表示其`值（Value）`包含至少一个`节点类型数据包（NodePacket）`或`原始类型数据包（PrimitivePacket）`，所有子节点按照`Tag-Length-Value`编码依次组合成该`节点类型数据包（NodePacket）`的最终值（Value）
 
 ### TLV Example
 
@@ -155,70 +155,60 @@ Tag {
 }
 ```
 
-首先，定义整个消息的结构，就像`.proto`文件做的一样：
+首先，定义整个消息的结构，就像ProtoBuffer的`.proto`文件做的一样：
 
 ```
-Primitive Packet, Tag=0x01 -> "age", value type is pvarint
-Node Packet, Tag=0x82 -> "summary", this node contains two primitive packets:
-  Primitive Packet, Tag=0x03 -> "name", value type is string
-  Primitive Packet, Tag=0x04 -> "create", value type is string
+基础数据类型（Primitive Packet），Tag定义为0x01，表示”age"，其值为变长整型（pvarint）
+节点数据类型（Node Packet），Tag定义为0x82，表示"summary"，该节点包含2个基础数据类型（primitive packets）:
+  基础数据类型（Primitive Packet），Tag定义为0x03，表示"name"，值为字符串（string）类型
+  基础数据类型（Primitive Packet），Tag定义为0x04，表示"create"，值为字符串（string）类型
 
 ```
 
-1. Use `Tag = 0x01` to describe `age`, its value is an integer `2`, use `pvarint` type when encoding
-2. Use `Tag = 0x82` to describe `summary`, its value payload need to parsing out
-3. Use `Tag = 0x03` to describe `name`, its value is string `CELLA`
-4. Use `Tag = 0x04` to describe `create`, its value is string `Y3`
+1. 使用`Tag = 0x01`描述`key=age`，其值是`2`，使用变长整型 [pvarint] 类型编码。
+2. 使用`Tag = 0x82`描述`key=summary`，其值需要从后续步骤推断。
+3. 使用`Tag = 0x03`描述`key=name`，其值是"CELLA"，使用字符串 [string] 类型对其编码。
+4. 使用`Tag = 0x04`描述`key=reate`，其值是"Y3"，使用字符串 [string] 类型对其编码。
 
-Encoding:
+编码顺序（序号表示顺序）:
 
 ```
-0x01 -> Tag=0x01 means key="age" primitive packet
-    0x01 -> The length of value is 1 (pvarint type, 0x01=1, means the following 1 byte is value payload)
-      0x05 -> 0x05 is pvarint type which represents integer 5
-0x82 -> Tag=0x82 means key="summary" node packet
-    0x0B -> The length of value is 11 (pvarint type, 0x0B=11, means the following 11 bytes are value payload)
-      0x03 -> Tag=0x03 means key="name" primitive packet
-        0x05 -> The length of value is 5 (pvarint type, 0x05=5, means the following 5 bytes are value payload)
-          0x43 0x45 0x4C 0x4C 0x41 -> UTF-8 string for "CELLA"
-      0x04 -> Tag=0x04 means key="create" primitive packet
-          0x02 -> The length of value is 2 (pvarint type, 0x02=2, means the following 2 bytes are value payload)
-            0x59 0x33 -> UTF-8 string for "Y3"
+1️⃣ 0x01 -> Tag=0x01 描述了 key="age"，因为最高位是0，表示它值是基础数据类型
+    3️⃣ 0x01 -> 该值的长度为1个字节，所以后续1个字节就是该值的具体内容【对于变长整型（pvarint），0x01表示1】
+      2️⃣ 0x05 -> 是变长整型（pvarint），0x05是数字5的编码
+8️⃣ 0x82 -> Tag=0x82 描述了 key="summary"，因为最高位是1，表示它的值（Value）是节点数据类型
+    7️⃣ 0x0B -> 该值的长度为11个字节，所以后续11个字节就是该值的具体内容【对于变长整型（pvarint），0x0B表示11】
+      1️⃣ 0x03 -> Tag=0x03 描述了 key="name"，因为最高位是0，表示它值是基础数据类型
+        3️⃣ 0x05 -> 该值的长度为5个字节，所以后续5个字节就是该值的具体内容【对于变长整型（pvarint），0x05表示5】
+          2️⃣ 0x43 0x45 0x4C 0x4C 0x41 -> "CELLA"的UTF-8编码
+      4️⃣ 0x04 -> Tag=0x04 描述了 key="create"，因为最高位是0，表示它值是基础数据类型
+        6️⃣ 0x02 -> 该值的长度为2个字节，所以后续2个字节就是该值的具体内容【对于变长整型（pvarint），0x02表示2】
+          5️⃣ 0x59 0x33 -> UTF-8 "Y3"的UTF-8编码
 ```
 
-Will be encoded as:
+最终表示为：
 
 `0x01 0x01 0x05 0x82 0x0B 0x03 0x05 0x43 0x45 0x4C 0x4C 0x41 0x04 0x02 0x59 0x33`
 
-## Type System
+## Primitive Type System
 
-支持一下数据类型编码：
-
-1. String
-1. Binary
-1. Boolean
-1. PVarInt32
-1. PVarUInt32
-1. PVarInt64
-1. PVarUInt64
-1. VarFloat32
-1. VarFloat64
+基础数据类型：
 
 ### String
 
-UTF-8 string
+使用`UTF-8`编码
 
 ### Binary
 
-The raw bytes
+二进制原始数据
 
-### Pvarint
+### pvarint
 
-`P-var-int` represents a variable-length integer encoding:
+变长整型，`p-var-int` 描述了一种长度可变的整型数值编码：
 
-* 'P' is for 'padding signed bit'.
-* 'var' is for 'variable-length'.
-* 'int' is for 'integer'.
+- `p` 表示`符号位填充（padding signed bit）`。
+- `var` 表示`长度可变（variable-length）`。
+- `int` 表示`整型（integer）`。
 
 ```
 8   7   6                0
@@ -227,20 +217,19 @@ The raw bytes
 +---+---+----------------+
 ```
  
-+ Big-Endian
-+ C `0x80` represents as `Continuation Bit`, if this bit is `1`, means the following byte need to read next, if this bit is `0`, means
-this is the last byte of the value.
-+ (S) `0x40` represents as `Signed Bit` for Signed-Integer. for Unsigned-Integer, this is the data bit.
-+ 与符号位相同的连续最高位只保留一位，剩余bits使用符号位填充
+- 使用大端序（Big-Endian）编码
+- 最高位`C`是`连续标识位（Continuation Bit）`，该位为`1`时表示下一个字节（byte）也是该值的一部分，需要继续读取；该位为`0`时表示该字节是整个数值的最后一个字节。
+- 对于`有符号整数（Signed-Integer）`，次高位`S`是`符号位（Signed Bit）`；对于`无符号整数（Unsigned-Integer）`，该位是数据位。
+- 与符号位相同的连续最高位只保留一位，剩余位（bits）使用符号位填充
 
 ~~~
-PVarInt32 Value {
+pvarint for signed-integer {
   Continuation Bit (1),
   Signed Bit (1),
   Payloads (6..),
 }
 
-PVarUInt32 Value {
+pvarint for unsigned-integer Value {
   Continuation Bit (1),
   Payloads (7..),
 }
@@ -248,20 +237,24 @@ PVarUInt32 Value {
 
 #### Pvarint Example
 
-An `i32` value `511` in Dec we represent in binary is `0000 0000 0000 0000 0000 0001 1111 1111`, it uses 4 bytes. When we encode it in Pvarint, there are 4 steps:
+以`Rust`中的`i32`类型的十进制数`511`为例，其二进制表示为：`0000 0000 0000 0000 0000 0001 1111 1111`，使用了`4个字节`。如果使用[pvarint]类型编码，将分为以下4个步骤：
  
-1. The valid bytes are `xxxx xxx0 1111 1111`
-2. Padding all the `x` as the signed bit `0`: `0000 0001 1111 1111`
-3. Choose 7-bits as value bits: `y000 0011 y111 1111`
-4. Change MSB as `1` except the last byte: `1000 0011 0111 1111`
+1. 是有符号整数，其有效数据位是：`xxxx xxx0 1111 1111`（为了表示每个字节是8位，使用`x`表示忽略的数据位；`511`是正数，其符号位是`0`）
+2. 将所有的`x`位使用符号位`0`填充：`0000 0001 1111 1111`
+3. 因为最高位用以表示连续位，所以有效数据位只有7位，我们将每个字节的最高位都插入连续位`y`：`y000 0011 y111 1111`
+4. 如果后续还有字节，则该字节的连续标识位（Continuation Bit）为`1`，否则为`0`，因此得到：`1000 0011 0111 1111`
 
-An `i32` value `-1` in Dec we represent in binary is `1111 1111 1111 1111 1111 1111 1111 1111`, it uses 4 bytes. When we encode it in Pvarint, there are 4 steps:
+使用`Y3`编码后，只需要2个字节就表示了`511`。
+
+以`Rust`中的`i32`类型的十进制数`-1`为例，其二进制表示为：`1111 1111 1111 1111 1111 1111 1111 1111`，使用了`4个字节`。如果使用[pvarint]类型编码，将分为以下4个步骤：
  
-1. The valid bytes are `xxxx xx11`
-2. Padding all the `x` as the signed bit `1`: `1111 1111`
-3. Choose 7-bits as value bits: `y111 1111`
-4. Change MSB as `1` except the last byte: `0111 1111`
+1. 是有符号整数，其有效数据位是：`xxxx xx11`（为了表示每个字节是8位，使用`x`表示忽略的数据位；`-1`是负数，其符号位是`1`）
+2. 将所有的`x`位使用符号位`1`填充：`1111 1111`
+3. 因为最高位用以表示连续位，所以有效数据位只有7位，我们将每个字节的最高位都插入连续位`y`：`y111 1111`
+4. 后续没有字节，则该字节的连续标识位（Continuation Bit）为`0`，因此得到：`0111 1111`
+
+使用`Y3`编码后，只需要1个字节就可表示`-1`。
 
 ### Boolean
 
-a `PVarUInt32` value represents `0` OR `1` in 1 byte
+布尔类型可以使用 [pvarint] 类型描述，`1`表示`True`，`0`表示`False`。
