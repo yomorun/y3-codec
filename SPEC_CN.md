@@ -1,4 +1,4 @@
-# Y3 Codec: 数据格式规范
+# Y3 Codec 数据格式规范 v202007
 
 ## 概览
 
@@ -20,6 +20,7 @@
   * [二进制类型（Binary）](#binary)
   * [变长整数类型（pvarint）](#pvarint)
   * [变长浮点数类型（TODO）](#float)
+  * [Proposal：Slice类型（Slice）](#slice)
 
 ## Design Goals
 
@@ -262,3 +263,7 @@ pvarint for unsigned-integer Value {
 ### Float
 
 TODO
+
+### Slice
+
+对于`Tag`的实现，考虑去除`次高位`的数组标示位，将`Slice`内置为基础数据类型，其结构为`Length-Value`的重复。
