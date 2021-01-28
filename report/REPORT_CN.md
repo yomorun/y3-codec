@@ -1,6 +1,6 @@
 # YoMo介绍
 
-​		[YoMo](https://github.com/yomorun/yomo) 是一套开源的实时边缘计算网关、开发框架和微服务平台，通讯层基于 [QUIC](https://en.wikipedia.org/wiki/QUIC) 协议 ([2020-09-25更新到Draft-31版本](https://tools.ietf.org/html/draft-ietf-quic-transport-31))，更好的释放了 5G 等下一代低时延网络的价值。为流式处理（Streaming Computing）设计的编解码器 [yomo-codec](https://github.com/yomorun/yomo-codec-golang) 能大幅提升计算服务的吞吐量；基于插件的开发模式，5分钟即可上线您的物联网实时边缘计算处理系统。YoMo 目前已在工业互联网领域被部署应用。
+​		[YoMo](https://github.com/yomorun/yomo) 是一套开源的实时边缘计算网关、开发框架和微服务平台，通讯层基于 [QUIC](https://en.wikipedia.org/wiki/QUIC) 协议 ([2020-09-25更新到Draft-31版本](https://tools.ietf.org/html/draft-ietf-quic-transport-31))，更好的释放了 5G 等下一代低时延网络的价值。为流式处理（Streaming Computing）设计的编解码器 [yomo-codec](https://github.com/yomorun/yomo-codec-golang) 能大幅提升计算服务的吞吐量；基于插件的开发模式，5分钟即可上线您的物联网实时边缘计算处理系统。YoMo 目前已在工业领域被部署应用。
 
 官网： [https://yomo.run](https://yomo.run/)
 
@@ -18,7 +18,7 @@
 
 - YoMo对消息进行流式处理，从中提取受监听的key-value对进行业务逻辑的处理。 如果使用JSON进行编解码，会要求必须等待接收完整的数据包后才能对数据包反序列化为对象，再从中提取对应的key-value值；但对于YoMo Codec，通过把对象数据描述成一组`TLV结构`，在数据包解码时，可以在解码过程中更早的了解到当前的`T`是否为所受监听得key，从而判断是否直接跳到下一组`TLV结构`,而并不需要对非受监听的数据包进行多余的解码操作，从而提升了解码的效率。
 - JSON的解码通常都使用了大量的反射，使得其性能会受到影响，而YoMo Codec因为只对实际被监听的key-value进行解码，实际反射的使用会大大减少。
-- 在工业互联网或者对计算资源要求严格的网络应用中，对相同的编解码操作需要损耗更少的CPU资源，从而使有限的计算资源得到更充分的应用。
+- 对计算资源要求严格的网络应用中，对相同的编解码操作需要损耗更少的CPU资源，从而使有限的计算资源得到更充分的应用。
 
 本次性能测试是为了验证YoMo Codec比JSON具有更高的数据解码性能的同时具有更少的资源消耗，从而为YoMo提供更为实时、高效、低损耗的消息处理能力。
 
@@ -76,7 +76,7 @@
 * 主要代码结构说明(只列举与本测试直接相关的文件说明)：
 
   ```
-  
+ 
   ├── cpu
   │   ├── cpu_pprof.go											// 用于生成cpu的profile信息
   ├── docs
@@ -115,7 +115,7 @@
 
 * 被测试代码：``./internal/decoder/report_serial/report_benchmark_test.go`，如：
 
-  ```go 
+  ```go
   // 针对YoMo Codec Y3进行基准测试
   func Benchmark_Codec_C63_K32(b *testing.B) {
   	var key byte = 0x20
@@ -248,26 +248,26 @@
 
 * 被测试代码： `./cpu/cpu_pprof.go`
 
-  ```go 
+  ```go
   func main() {
-  	dataCodec := generator.NewCodecTestData().GenDataBy(63)
-  	dataJson := generator.NewJsonTestData().GenDataBy(63)
-  	dataJson = append(dataJson, decoder.TokenEnd)
-  
-  	// pprof
-  	fmt.Printf("start pprof\n")
-  	go pprof.Run()
-  	time.Sleep(5 * time.Second)
-  
-  	fmt.Printf("start testing...\n")
-  	for {
-  		if decoder.TakeValueFromCodec(0x20, dataCodec) == nil {
-  			panic(errors.New("take is failure"))
-  		}
-  		if decoder.TakeValueFromJson("k32", dataJson) == nil {
-  			panic(errors.New("take is failure"))
-  		}
-  	}
+    dataCodec := generator.NewCodecTestData().GenDataBy(63)
+    dataJson := generator.NewJsonTestData().GenDataBy(63)
+    dataJson = append(dataJson, decoder.TokenEnd)
+
+    // pprof
+    fmt.Printf("start pprof\n")
+    go pprof.Run()
+    time.Sleep(5 * time.Second)
+
+    fmt.Printf("start testing...\n")
+    for {
+      if decoder.TakeValueFromCodec(0x20, dataCodec) == nil {
+        panic(errors.New("take is failure"))
+      }
+      if decoder.TakeValueFromJson("k32", dataJson) == nil {
+        panic(errors.New("take is failure"))
+      }
+    }
   }
   ```
   
