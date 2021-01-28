@@ -1,83 +1,73 @@
-# Y3 Codec: Base Format (Invariants)
+# Y3 Codec: 数据格式规范
 
-## Overview
+## 概览
 
-Version Draft-01 (v202007). This protocol defines the framing individual message formats.
+版本号：Draft-01 (v202007)。该协议定义了Y3 Codec的帧格式。
 
-## TOC
+## 目录
 
-* [Y3 Codec Packet Format](#y3-packet-format)
-* [Notational Conventions](#notational-conventions)
-* [TLV Format](#tlv-format)
+* [设计目标](#design-goals)
+* [符号约定](#notational-conventions)
+* [TLV格式](#tlv-format)
   * [Tag](#tag)
     * [NodePacket](#nodepacket)
     * [PrimitivePacket](#primitivepacket)
   * [Length](#length)
   * [Value](#value)
-  * [TLV Example](#tlv-example)
-* [Type System](#type-system)
-  * [PVarUInt32](#pvarint)
-  * [PVarUInt32 Example](#pvarint-example)
+  * [示例](#tlv-example)
+* [数据类型](#type-system))
+  * [字符串类型](#string)
+  * [二进制类型](#binary)
+  * [变长整数类型](#pvarint)
+  * [变长浮点数类型](#TODO)
 
-## Y3 Codec Packet Format
+## Design Goals
 
-Defines message formats.
+设计目标
 
-* A faster than real-time codec.
-* Binary is good for encoding/decoding, especially for random access of stream processing.
-* Design for QUIC Transport
-* Not related to connection protocol, just a message format.
+* 是一个`faster than real-time`的编码器。
+* 二进制格式适合做编解码，尤其是在流式处理过程中的随机访问场景。
+* 为在QUIC Transport的使用优化。
+* 本文不涉及RPC场景，与连接无关，仅是数据结构定义。
 
 ## Notational Conventions
 
-Packet and frame diagrams in this document use a bespoke format. The purpose of
-this format is to summarize, not define, protocol elements. Prose defines the
-complete semantics and details of structures.
+本文档中的数据包和框架图使用了定制的格式，其目的是这种格式是为了描述表述方法，而不是定义具体的协议元素。该文档定义了完整的语义和结构的细节。
 
-Complex fields are named and then followed by a list of fields surrounded by a
-pair of matching braces. Each field in this list is separated by commas.
+先为复合结构（complex fields）命名，然后是一个包含在`{ }`内的字段列表，该列表中的每个字段都由逗号分隔。
 
-Individual fields include length information, plus indications about fixed
-value, optionality, or repetitions. Individual fields use the following
-notational conventions, with all lengths in bits:
+各个字段包括长度信息，以及关于固定的字段的指示：值、可选性或重复性。
+
+单个字段使用以下内容符号惯例，所有长度以位（bit）为单位。
 
 `x (A)`:
-: Indicates that x is A bits long
-
-`x (i)`:
-: Indicates that x uses the variable-length encoding in {{integer-encoding}}
+表示`x`的长度为`A`位
 
 `x (A..B)`:
-: Indicates that x can be any length from A to B; A can be omitted to indicate
-  a minimum of zero bits and B can be omitted to indicate no set upper limit;
-  values in this format always end on an octet boundary
+表示`x`可以是`A`到`B`之间的任意长度。`A`可以省略，表示最小值是`0`，`B`可以省略，表示最大值没有设置上限
 
 `x (?) = C`:
-: Indicates that x has a fixed value of C
+表示`x`是固定长度为`C`位
 
 `x (?) = C..D`:
-: Indicates that x has a value in the range from C to D, inclusive
+表示`x`的值在`C`到`D`之间
 
-\[x (E)\]:
-: Indicates that x is optional (and has length of E)
+`[x (E)]`:
+`[]`表示该部分是可选的
 
 `x (E) ...`:
-: Indicates that x is repeated zero or more times (and that each instance is
-  length E)
+表示`x`会重复零次或多次（并且每次城府都是长度为`E`位）
 
-This document uses network byte order (that is, big endian) values.  Fields
-are placed starting from the high-order bits of each byte.
+本文档使用大端序（Big-Endian），字段从每个字节的高位开始放置。
 
-By convention, individual fields reference a complex field by using the name of
-the complex field.
+按照惯例，单个字段通过使用以下名称来引用一个复杂字段复杂的结构。
 
-For example:
+例如：
 
 ~~~
 Example Structure {
   One-bit Field (1),
   7-bit Field with Fixed Value (7) = 61,
-  Field with Variable-Length Integer (i),
   Arbitrary-Length Field (..),
   Variable-Length Field (8..24),
   Field With Minimum Length (16..),
@@ -94,7 +84,7 @@ Example Structure {
 +--------+
 | Tag    |
 +--------+--------+--------+--------+
-| Length (PVarUInt32)               |
+| Length                            |
 +--------+--------+--------+--------+
 | ...
 +--------+--------+--------+--------+
@@ -120,7 +110,7 @@ Tag {
 
 ### Tag
 
-固定8 bits长度(1 byte):
+标签（Tag）的长度是固定8 bits（1 byte）
 
 ```
 8   7   6                0
@@ -129,29 +119,31 @@ Tag {
 +------------------------+
 ```
 
-1. 其最高位`F`(1000_0000)为`Packet Type`标志位，Y3 Codec有两种`Packet`：`PrimitivePacket`和`NodePacket`。对于`PrimitivePacket`，该bit始终为0；对于`NodePacket`，该bit始终为1。
-1. 次高位`A`（0100_0000）为数组标识位，当该位为1时，表示该节点的Value为Slice类型（类似于JSON数据结构中的数组）。
-1. 剩余低6位为`顺序标识位Sequence Bits`，用于表示该节点的SeqID（类似于JSON数据结构中的Key的作用）。（所有对于一个`NodePacket`，其Sub-Node最多只能有`2^6=64`个）。
+1. 其最高位`F`（1000_0000）为`数据包类型（Packet Type）`标志位，Y3 Codec有两种`数据包（Packet）`：`原始类型数据包（PrimitivePacket）`和`节点类型数据包（NodePacket）`。
+  1. 对于`原始类型数据包（PrimitivePacket）`，该bit始终为`0`。
+  1. 对于`节点数据包（NodePacket）`，该bit始终为`1`。
+1. 次高位`A`（0100_0000）为`数组标识位`，当该位为`1`时，表示该节点的`值（Value）`为`切片（Slice）`类型（就像JSON中的数组概念）。
+1. 剩余低6位为`顺序ID标识位（Sequence Bits）`，用于表示该节点的`顺序ID（SeqID）`（类似于JSON数据结构中的Key的作用）。
 
 ### Length
 
-Length描述了该`Packet`的`Value`的字节长度，是[PVarUInt32变长整数类型](#pvarint)
+`值位长（Length）`描述了该`数据包（Packet）`的`值（Value）`的字节长度，是[变长整数类型](#pvarint)
 
 ### Value
 
-Value存储了该`Packet`的Value，在`decode`时，用户应指明具体数据类型对其解码
+`值（Value）`存储了该`数据包（Packet）`的值内容，在`解码（decode）`时，再指明具体数据类型。
 
 #### Primitive Types
 
-表示其`Value`是基础数据类型
+表示其`值（Value）`的数据类型是`基础数据类型`
 
 #### Node Type
 
-表示其`Value`包含至少一个`NodePacket`或`PrimitivePacket`，所以子节点按照TLV编码依次组合成该NodePacket的最终Value
+表示其`值（Value）`包含至少一个`节点类型数据包（NodePacket）`或`原始类型数据包（PrimitivePacket）`，所有子节点按照`Tag-Length-Value`编码依次组合成该`节点类型数据包（NodePacket）`的最终值（Value）
 
 ### TLV Example
 
-If we want to transform this `JSON` format object as Y3:
+示例：如果使用`Y3`编码表示下面的`JSON`数据结构
 
 ```json
 {
@@ -163,7 +155,7 @@ If we want to transform this `JSON` format object as Y3:
 }
 ```
 
-First define the message struct, just like a `.proto` file does:
+首先，定义整个消息的结构，就像`.proto`文件做的一样：
 
 ```
 Primitive Packet, Tag=0x01 -> "age", value type is pvarint
