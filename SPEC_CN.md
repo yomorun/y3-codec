@@ -9,17 +9,17 @@
 * [设计目标](#design-goals)
 * [符号约定](#notational-conventions)
 * [TLV格式](#tlv-format)
-  * [Tag](#tag)
-    * [NodePacket](#nodepacket)
-    * [PrimitivePacket](#primitivepacket)
-  * [Length](#length)
-  * [Value](#value)
-  * [示例](#tlv-example)
-* [数据类型](#type-system))
-  * [字符串类型](#string)
-  * [二进制类型](#binary)
-  * [变长整数类型](#pvarint)
-  * [变长浮点数类型](#TODO)
+  * [标签（Tag）](#tag)
+    * [基础数据类型（Primitive Packet）](#primitive-type)
+    * [节点数据类型（Node Packet）](#node-type)
+  * [长度（Length）](#length)
+  * [值（Value）](#value)
+  * [TLV格式编码示例](#tlv-example)
+* [基础数据类型](#primitive-type-system)
+  * [字符串类型（String）](#string)
+  * [二进制类型（Binary）](#binary)
+  * [变长整数类型（pvarint）](#pvarint)
+  * [变长浮点数类型（TODO）](#float)
 
 ## Design Goals
 
@@ -255,6 +255,10 @@ pvarint for unsigned-integer Value {
 
 使用`Y3`编码后，只需要1个字节就可表示`-1`。
 
-### Boolean
+#### Boolean
 
 布尔类型可以使用 [pvarint] 类型描述，`1`表示`True`，`0`表示`False`。
+
+### Float
+
+TODO
