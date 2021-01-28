@@ -6,7 +6,7 @@
 > Status: WIP
 >
 
-Languages: English | [简体中文](README-CN.md)
+Languages: English | [简体中文](README_CN.md)
 
 See:
 
