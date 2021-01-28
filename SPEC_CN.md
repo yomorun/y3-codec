@@ -121,10 +121,10 @@ Tag {
 ```
 
 1. 其最高位`F`（1000_0000）为`数据包类型（Packet Type）`标志位，Y3 Codec有两种`数据包（Packet）`：`原始类型数据包（PrimitivePacket）`和`节点类型数据包（NodePacket）`。
-  1. 对于`原始类型数据包（PrimitivePacket）`，该bit始终为`0`。
-  1. 对于`节点数据包（NodePacket）`，该bit始终为`1`。
-1. 次高位`A`（0100_0000）为`数组标识位`，当该位为`1`时，表示该节点的`值（Value）`为`切片（Slice）`类型（就像JSON中的数组概念）。
-1. 剩余低6位为`顺序ID标识位（Sequence Bits）`，用于表示该节点的`顺序ID（SeqID）`（类似于JSON数据结构中的Key的作用）。
+    1. 对于`原始类型数据包（PrimitivePacket）`，该bit始终为`0`。
+    2. 对于`节点数据包（NodePacket）`，该bit始终为`1`。
+2. 【待讨论，请勿实现】次高位`A`（0100_0000）为`数组标识位`，当该位为`1`时，表示该节点的`值（Value）`为`切片（Slice）`类型（就像JSON中的数组概念）。
+3. 剩余低6位为`顺序ID标识位（Sequence Bits）`，用于表示该节点的`顺序ID（SeqID）`（类似于JSON数据结构中的Key的作用）。
 
 #### Primitive Types
 
