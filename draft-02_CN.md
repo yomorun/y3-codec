@@ -264,4 +264,15 @@ TODO
 
 ### Slice
 
-对于`Tag`的实现，考虑去除`次高位`的数组标示位，将`Slice`内置为基础数据类型，其结构为`Length-Value`的重复。
+其结构为`Length-Value`的重复。
+
+~~~
+Slice {
+  Repeated SliceElement (...) 
+}
+
+SliceElement {
+  Length with pvarint type (8..),
+  Value (8..),
+}
+~~~
