@@ -125,11 +125,11 @@ Tag {
 1. 最高位`C`是`连续标识位（Continuation Bit）`，该位为`1`时表示下一个字节（byte）也是该值的一部分，需要继续读取；该位为`0`时表示该字节是整个数值的最后一个字节。
 2. 剩余低7位为`顺序ID标识位（Sequence Bits）`，用于表示该节点的`顺序ID（SeqID）`（类似于JSON数据结构中的Key的作用）。
 
-TODO：Tag要支持使用[PVarUInt64]或Raw Bytes的方式编码和解析：
+TODO：Tag要支持使用[PVarUInt64](#PVarUInt64)或Raw Bytes的方式编码和解析：
 
 USE CASE：
 
-可以使用`0xFF 0x7F`(18446744073709551615) 作为Tag的值，如果使用[PVarUInt64]对其解码，得到的结果是`0x7F`，而不是`0xFF 0x7F`。即`0xFF 0x7F`与`0x7F`都能被解码成同样的值，但又保证了不同。
+可以使用`0xFF 0x7F`(18446744073709551615) 作为Tag的值，如果使用[PVarUInt64](#PVarUInt64)对其解码，得到的结果是`0x7F`，而不是`0xFF 0x7F`。即`0xFF 0x7F`与`0x7F`都能被解码成同样的值，但又保证了不同。
 
 #### Supported Types
 
