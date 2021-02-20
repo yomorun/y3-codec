@@ -100,13 +100,13 @@ Example Structure {
 
 ~~~
 Base Packet {
-  Tag (8) ...,
-  Length (8) ...,
-  Value (8) ...,
+  Tag (8..),
+  Length (8..),
+  [Value (8..)],
 }
 
 Tag {
-  TypeFlag (1),
+  ContinuationBit (1),
   SequenceID (7),
 }
 ~~~
@@ -125,7 +125,13 @@ Tag {
 1. 最高位`C`是`连续标识位（Continuation Bit）`，该位为`1`时表示下一个字节（byte）也是该值的一部分，需要继续读取；该位为`0`时表示该字节是整个数值的最后一个字节。
 2. 剩余低7位为`顺序ID标识位（Sequence Bits）`，用于表示该节点的`顺序ID（SeqID）`（类似于JSON数据结构中的Key的作用）。
 
-#### Primitive Types
+TODO：Tag要支持使用[PVarUInt64]或Raw Bytes的方式编码和解析：
+
+USE CASE：
+
+可以使用`0xFF 0x7F`(18446744073709551615) 作为Tag的值，如果使用[PVarUInt64]对其解码，得到的结果是`0x7F`，而不是`0xFF 0x7F`。即`0xFF 0x7F`与`0x7F`都能被解码成同样的值，但又保证了不同。
+
+#### Supported Types
 
 表示其`值（Value）`的数据类型是`基础数据类型`。
 
@@ -135,7 +141,7 @@ Tag {
 
 ### Length
 
-`值位长（Length）`描述了该`数据包（Packet）`的`值（Value）`的字节长度，是[变长整数类型](#pvarint)。
+`值位长（Length）`描述了该`数据包（Packet）`的`值（Value）`的字节长度，是[变长整数类型](#PVarUInt64)。
 
 ### Value
 
@@ -201,7 +207,7 @@ Tag定义为0x02，表示"summary"，包含2个TLV
 
 二进制原始数据
 
-### pvarint
+### PVarint
 
 变长整型，`p-var-int` 描述了一种长度可变的整型数值编码：
 
@@ -234,6 +240,16 @@ pvarint for unsigned-integer Value {
 }
 ~~~
 
+#### Sub types
+
+##### PVarUInt64
+
+##### PVarInt64
+
+##### PVarUInt32
+
+##### PVarInt32
+
 #### Pvarint Example
 
 以`Rust`中的`i32`类型的十进制数`511`为例，其二进制表示为：`0000 0000 0000 0000 0000 0001 1111 1111`，使用了`4个字节`。如果使用[pvarint]类型编码，将分为以下4个步骤：
@@ -256,7 +272,7 @@ pvarint for unsigned-integer Value {
 
 #### Boolean
 
-布尔类型可以使用 [pvarint] 类型描述，`1`表示`True`，`0`表示`False`。
+布尔类型可以使用 [pvaruint] 类型描述，`1`表示`True`，`0`表示`False`。
 
 ### Float
 
@@ -268,7 +284,7 @@ TODO
 
 ~~~
 Slice {
-  Repeated SliceElement (...) 
+  Repeated SliceElement (8..) 
 }
 
 SliceElement {
