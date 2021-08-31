@@ -24,6 +24,7 @@
   * [变长整数类型（pvarint）](#pvarint)
   * [变长浮点数类型（TODO）](#float)
   * [Slice类型（Slice）](#slice)
+* [分块编码](#chunked-encoding)
 
 ## Design Goals
 
@@ -143,7 +144,7 @@ USE CASE：
 
 ### Length
 
-`值位长（Length）`描述了该`数据包（Packet）`的`值（Value）`的字节长度，是[变长整数类型](#PVarUInt64)。
+`值位长（Length）`描述了该`值（Value）`编码状态与编码字节长度，是[变长整数类型](#PVarUInt64)。当值位长为非负数时，表示值的整体编码结束；当值位长为负数时，表示值存在后续编码块。值位长的绝对值表示当前编码块的字节长度。
 
 ### Value
 
@@ -294,3 +295,7 @@ SliceElement {
   Value (8..),
 }
 ~~~
+
+## Chunked Encoding
+
+在 `Tag-Length-Value` 结构中，通常 `Length` 为非负数，这种编码方式称为单块编码。通过设置 `Length` 为负数，可以构建出 `Tag-Length1-Value1-Length2-Value2-...-LengthN-ValueN` 的编码形式，这种编码方式成为分块编码。在解码时，将 `Value1`, `Value2`, `...`, `ValueN` 块合并构成完整的 `Value` 值。
