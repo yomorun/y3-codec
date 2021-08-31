@@ -298,4 +298,4 @@ SliceElement {
 
 ## Chunked Encoding
 
-在 `Tag-Length-Value` 结构中，通常 `Length` 为非负数，这种编码方式称为单块编码。通过设置 `Length` 为负数，可以构建出 `Tag-Length1-Value1-Length2-Value2-...-LengthN-ValueN` 的编码形式，这种编码方式成为分块编码。在解码时，将 `Value1`, `Value2`, `...`, `ValueN` 块合并构成完整的 `Value` 值。
+在 `Tag-Length-Value` 结构中，通常 `Length` 为非负数，这种编码方式称为单块编码。通过设置 `Length` 为负数，可以构建出 `Tag-Length1-Value1-Length2-Value2-...-LengthN-ValueN` 的编码形式，这种编码方式称为分块编码。在解码时，将 `Value1`, `Value2`, `...`, `ValueN` 块合并构成完整的 `Value` 值。分块编码方式同样可以应用于[Slice](#slice)的单个 `Length-Value` 值的编码。
